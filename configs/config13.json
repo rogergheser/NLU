@@ -1,0 +1,8 @@
+{
+    "emb_size" : 250,
+    "hid_size" : 300,
+    "out_dropout" : 0.2,
+    "emb_dropout" : 0.65,
+    "lr" : 0.001,
+    "optimizer" : "adamw"
+}
