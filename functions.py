@@ -70,3 +70,15 @@ def init_weights(mat):
                 torch.nn.init.uniform_(m.weight, -0.01, 0.01)
                 if m.bias != None:
                     m.bias.data.fill_(0.01)
+
+
+def plot_model(epochs, train_loss, dev_loss):
+    import matplotlib.pyplot as plt
+    plt.plot(epochs, train_loss, label="Train Loss", marker='o')
+    plt.plot(epochs, dev_loss, label="Dev Loss", marker='s')
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.title(f"Training and Validation Loss")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()

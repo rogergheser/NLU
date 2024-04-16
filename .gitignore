@@ -1,2 +1,7 @@
 __pycache__
 Anaconda3-2024.02-1-Linux-x86_64.sh
+
+venv/pyvenv.cfg
+venv/bin/python
+venv/bin/python3
+venv/lib64
