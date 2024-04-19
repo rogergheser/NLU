@@ -4,22 +4,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import math
 import numpy as np
-# from functions import VariationalDropout
-
-class VariationalDropout(nn.Module):
-    def __init__(self, p=0.5):
-        super(VariationalDropout, self).__init__()
-        self.dropout_rate = p
-
-    def forward(self, x):
-        if not self.training or self.dropout_rate == 0:
-            return x
-        # Calculate dropout mask with the same dropout rate for all elements in the batch
-        mask = x.new_empty(x.size(0), 1, x.size(2)).bernoulli_(1 - self.dropout_rate)
-        mask = mask / (1 - self.dropout_rate)
-        mask = mask.expand_as(x)
-        return mask * x
-
+from functions import VariationalDropout
 class LM_LSTM(nn.Module):
     def __init__(self, emb_size, hidden_size, output_size, pad_index=0, out_dropout=0,
                  emb_dropout=0, n_layers=1, weight_tying=False, variational_dropout=False):
