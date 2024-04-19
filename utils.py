@@ -3,6 +3,8 @@ import torch.utils.data as data
 from functools import partial
 from torch.utils.data import DataLoader
 
+DEVICE = 'cuda:0'
+
 # Loading the corpus
 def read_file(path, eos_token="<eos>"):
     """
