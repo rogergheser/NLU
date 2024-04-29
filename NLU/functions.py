@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 from conll import evaluate
 from sklearn.metrics import classification_report
+import os
+import matplotlib.pyplot as plt
 
 def init_weights(mat):
     for m in mat.modules():
@@ -95,3 +97,29 @@ def eval_loop(data, criterion_slots, criterion_intents, model, lang):
     report_intent = classification_report(ref_intents, hyp_intents, 
                                           zero_division=False, output_dict=True)
     return results, report_intent, loss_array
+
+def save_model(path, epoch, model, optimizer, w2id, slot2id, intent2id):
+    PATH = os.path.join("bin", path)
+    try:
+        os.makedirs(os.path.dirname(PATH), exist_ok=True)
+        saving_object = {"epoch": epoch, 
+                         "model": model.state_dict(), 
+                         "optimizer": optimizer.state_dict(), 
+                         "w2id": w2id, 
+                         "slot2id": slot2id, 
+                         "intent2id": intent2id}
+        torch.save(saving_object, PATH)
+    except:
+        os.mkdir(os.path.dirname(PATH))
+        torch.save(saving_object, PATH)
+
+def plot_model(idx, sampled_epochs, losses_train, losses_dev):
+    plt.figure(num = 3, figsize=(8, 5)).patch.set_facecolor('white')
+    plt.title('Train and Dev Losses')
+    plt.ylabel('Loss')
+    plt.xlabel('Epochs')
+    plt.plot(sampled_epochs, losses_train, label='Train loss')
+    plt.plot(sampled_epochs, losses_dev, label='Dev loss')
+    plt.legend()
+    plt.show()
+    plt.savefig(f'plots/losses{idx}.png')
