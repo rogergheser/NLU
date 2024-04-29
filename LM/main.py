@@ -1,3 +1,4 @@
+import os
 import torch
 from utils import *
 from functions import *
@@ -86,7 +87,7 @@ def main(device='cuda:0', task='11', model=None):
             if loss_dev < best_loss:
                 best_loss = loss_dev
                 best_model = copy.deepcopy(model)
-                patience = 0
+                patience = 5
             else:
                 patience -= 1
             if patience <= 0:
@@ -103,10 +104,12 @@ def main(device='cuda:0', task='11', model=None):
 
 
 if __name__ == '__main__':
+    if os.path.basename(os.getcwd()) != 'LM':
+        os.chdir('/home/disi/NLU/LM')
     argparser = argparse.ArgumentParser()
     argparser.add_argument('--device', type=str, default='cuda:0', help='Device to use')
     argparser.add_argument('--task', type=str, default='23', help='Task to run')
     argparser.add_argument('--model', type=str, default='', help='Model to use')
     args = argparser.parse_args()
     
-    main(args.task, args.device, args.model)
+    main(args.device, args.task, args.model)
