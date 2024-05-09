@@ -1,0 +1,3 @@
+[submodule "JointBERT"]
+	path = JointBERT
+	url = https://github.com/monologg/JointBERT
