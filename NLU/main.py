@@ -81,12 +81,12 @@ def main(train_loader, dev_loader, test_loader,
 if __name__ == '__main__':
 
     if os.getcwd().split('/')[-2:] != 'NLU/NLU':
-        os.chdir('/home/disi/NLU/NLU')
+        os.chdir('NLU/')
 
     if torch.cuda.is_available():
         device = torch.device("cuda")
-    elif torch.backends.mps.is_available():
-        device = torch.device("mps")
+    # elif torch.backends.mps.is_available():
+    #     device = torch.device("mps")
     else:
         device = torch.device("cpu")
 
