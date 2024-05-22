@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 import torch
 import torch.backends
 from torch.utils import data
+import regex as re
 
 PAD_TOKEN = 0
 if torch.cuda.is_available():
@@ -82,3 +83,18 @@ class Lang():
         for elem in elements:
                 vocab[elem] = len(vocab)
         return vocab
+
+def get_index(dir):
+    files = os.listdir(dir)
+    if len(files) == 0:
+        return 0
+    indexes = []
+    for file in files:
+        indexes.append(int(re.findall(r'\d+', file)[0]))
+    return max(indexes)+1
+
+def save_model(model, optimizer, path):
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict()
+    }, path)
