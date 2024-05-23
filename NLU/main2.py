@@ -77,7 +77,7 @@ def eval_loop(data, criterion_slots, criterion_intents, model, lang):
 
             # check this part
             for id_seq, seq in enumerate(output_slots):
-                mask = ~np.isin(input_ids[id_seq].cpu().numpy(), special_tokens)
+                mask = ~np.isin(slot_labels[id_seq].cpu().numpy(), special_tokens)
                 indices = list(np.where(mask)[0])
                 utt_ids = [input_ids[id_seq][i].item() for i in indices]
                 gt_ids = [slot_labels[id_seq][i].item() for i in indices]
@@ -92,7 +92,7 @@ def eval_loop(data, criterion_slots, criterion_intents, model, lang):
                 hyp_slots.append(tmp_seq)
                 if len(ref_slots[id_seq]) != len(hyp_slots[id_seq]):
                     print("Error in slot labels")
-                
+
     try:            
         results = evaluate(ref_slots, hyp_slots)
     except Exception as ex:
@@ -113,8 +113,10 @@ def main(train_loader, dev_loader, _, lang, model, optimizer, criterion_slots, c
     print('Slot F1: ', results_test['total']['f'])
     print('Intent Accuracy:', intent_test['accuracy'])
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=2, verbose=True)
+    top_f1 = 0
     try:
         n_epochs = 20
+        patience = 4
         losses_train = []
         losses_dev = []
         sampled_epochs = []
@@ -128,6 +130,15 @@ def main(train_loader, dev_loader, _, lang, model, optimizer, criterion_slots, c
                 results_dev, intent_res, loss_dev = eval_loop(dev_loader, criterion_slots, criterion_intents, model, lang)
                 losses_dev.append(np.asarray(loss_dev).mean())
                 f1 = results_dev['total']['f']
+            top_f1 = max(top_f1, f1)
+            if f1 == top_f1:
+                patience = 3
+            else:
+                patience -= 1
+
+            if patience == 0:
+                print("Early stopping")
+                break
             loop.set_description(f"Epoch {x} - Train Loss: {losses_train[-1]:.4f} - Dev Loss: {losses_dev[-1]:.4f} - F1: {f1:.4f}")
             loop.set_postfix(slots=results_dev['total']['f'], intent=intent_res['accuracy'])
     except KeyboardInterrupt:
@@ -176,7 +187,7 @@ if __name__ == '__main__':
     dev_loader = DataLoader(dev_dataset, batch_size=64, collate_fn=collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=64, collate_fn=collate_fn)
 
-    lr = 1e-5 # learning rate
+    lr = 2e-5 # learning rate
     clip = 1.0 # Clip the gradient
     dropout = 0.1 # Dropout rate
     model = JointBert(config, out_slot, out_int, dropout=dropout).to(device)

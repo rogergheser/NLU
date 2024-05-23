@@ -43,7 +43,7 @@ def collate_fn(data):
     return {'input_ids': input_ids, 'slot_labels': slot_labels, 'intent_labels': intent_labels, 'attention_mask': attention_mask, 'token_type_ids': token_type_ids}
 
 class IntentsAndSlots(torch.utils.data.Dataset):
-    def __init__(self, data, lang, tokenizer, max_seq_len=52):
+    def __init__(self, data, lang, tokenizer, max_seq_len=64):
         self.data = data
         self.lang = lang
         self.tokenizer = tokenizer

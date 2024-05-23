@@ -51,12 +51,13 @@ def main(device='cuda:0', task='11', model=None):
     }
 
     model = LM_LSTM(**model_params).to(device)
+    init_weights(model)
 
     criterion_train = nn.CrossEntropyLoss(ignore_index=lang.word2id["<pad>"])
     criterion_eval = nn.CrossEntropyLoss(ignore_index=lang.word2id["<pad>"], reduction='sum')
     lr = 10
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.75)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True, threshold=1, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
     clip = 5
 
     n_epochs = 100
@@ -76,22 +77,52 @@ def main(device='cuda:0', task='11', model=None):
     
     try:
         for epoch in pbar:
-            loss_train = train_loop(train_loader, optimizer, criterion_train, model, clip=clip)
-            ppl, loss_dev = eval_loop(dev_loader, criterion_eval, model)
-            scheduler.step()
-            sampled_epochs.append(epoch)
-            losses_train.append(loss_train)
-            losses_dev.append(loss_dev)
-            logs.append(ppl)
-            pbar.set_postfix({'loss_train': loss_train, 'loss_dev': loss_dev, 'ppl': ppl})
-            if loss_dev < best_loss:
-                best_loss = loss_dev
-                best_model = copy.deepcopy(model)
-                patience = 5
-            else:
-                patience -= 1
-            if patience <= 0:
-                break
+            loss = train_loop(train_loader, optimizer, criterion_train, model, clip)            
+            if epoch % 1 == 0:
+                sampled_epochs.append(epoch)
+                losses_train.append(np.asarray(loss).mean())
+                
+                if 't0' in optimizer.param_groups[0]: # ASGD
+                    tmp = {}
+                    for prm in model.parameters():
+                        tmp[prm] = prm.data.clone()
+                        prm.data = optimizer.state[prm]['ax'].clone()
+
+                    ppl_dev, loss_dev = eval_loop(dev_loader, criterion_eval, model)
+
+                    for prm in model.parameters():
+                        prm.data = tmp[prm].clone()
+                    if ppl_dev < best_ppl:
+                        best_ppl = ppl_dev
+                        best_model = copy.deepcopy(model).to('cpu')
+                        patience = 5
+                    else:
+                        patience -= 1
+                    if patience <= 0:
+                        break
+                else:
+                    ppl_dev, loss_dev = eval_loop(dev_loader, criterion_eval, model)
+                    if 't0' not in optimizer.param_groups[0] \
+                            and (len(logs)) > monotone and loss_dev > min(logs[:-monotone]):
+                        print("Using ASGD")
+                        optimizer = torch.optim.ASGD(model.parameters(), lr=lr, t0=0, lambd=0.)
+
+                    logs.append(loss_dev)
+
+                losses_dev.append(np.asarray(loss_dev).mean())
+                
+                pbar.set_description("PPL: {} | Loss {}".format(ppl_dev, loss_dev))
+                if ppl_dev < best_ppl:
+                        best_ppl = ppl_dev
+                        best_model = copy.deepcopy(model).to('cpu')
+                        patience = 5
+                else:
+                    patience -= 1
+                if patience <= 0:
+                    break
+                
+            if scheduler is not None:
+                scheduler.step(ppl_dev)   
     except KeyboardInterrupt:
         print("Training interrupted")
     

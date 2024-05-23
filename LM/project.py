@@ -116,13 +116,12 @@ def main(task, device='cuda:0', model=None):
                 
                 if 't0' in optimizer.param_groups[0]: # ASGD
                     tmp = {}
-                    tmp[prm] = prm.data.clone()
-                    prm.data = optimizer.state[prm]['ax'].clone()
+                    for prm in model.parameters():
+                        tmp[prm] = prm.data.clone()
+                        prm.data = optimizer.state[prm]['ax'].clone()
 
                     ppl_dev, loss_dev = eval_loop(dev_loader, criterion_eval, model)
 
-                    for prm in model.parameters():
-                        prm.data = tmp[prm].clone()
                     if ppl_dev < best_ppl:
                         best_ppl = ppl_dev
                         best_model = copy.deepcopy(model).to('cpu')
@@ -131,6 +130,8 @@ def main(task, device='cuda:0', model=None):
                         patience -= 1
                     if patience <= 0:
                         break
+                    for prm in model.parameters():
+                        prm.data = tmp[prm].clone()
                 else:
                     ppl_dev, loss_dev = eval_loop(dev_loader, criterion_eval, model)
                     if 't0' not in optimizer.param_groups[0] \
