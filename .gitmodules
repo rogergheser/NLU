@@ -1,3 +1,9 @@
 [submodule "JointBERT"]
 	path = JointBERT
 	url = https://github.com/monologg/JointBERT
+[submodule "SA/E2E-TBSA"]
+	path = SA/E2E-TBSA
+	url = https://github.com/lixin4ever/E2E-TBSA
+[submodule "E2E-TBSA"]
+	path = E2E-TBSA
+	url = https://github.com/lixin4ever/E2E-TBSA
