@@ -7,7 +7,7 @@ class Lang():
         self.id2slot = id2slot
 
 class Slots(data.Dataset):
-    def __init__(self, data, tokenizer, max_seq_len=64):
+    def __init__(self, data, tokenizer, max_seq_len=100):
         self.data = data
         self.tokenizer = tokenizer
         slot2id = {tokenizer.pad_token:tokenizer.pad_token_id,'T':1, 'O':2}
@@ -18,48 +18,54 @@ class Slots(data.Dataset):
         unk_token = tokenizer.unk_token
         pad_token_id = tokenizer.pad_token_id  
         
+        input_ids = []
+        slot_labels = []
+        input_ids = []
+        slot_labels = []
         self.input_ids = []
         self.slot_labels = []
         self.attention_mask = []
-        self.token_type_ids = []
 
         for sample in data:
             tokens = []
             slot_labels = []
-            sentences, slots = sample
+            sentence, slot = sample
 
-            for word, slot in slots:
+            for word, slot in zip(sentence.split(" "), slot):
                 _tokens = tokenizer.tokenize(word)
                 if not _tokens:
-                    tokens = [unk_token]
+                    _tokens = [unk_token]
                 tokens.extend(_tokens)
-                slot_labels.extend([lang.slot2id[slot]] + [pad_token_id]*(len(_tokens)-1) )
+                slot_labels.extend([lang.slot2id[slot]] + [pad_token_id]*(len(_tokens)-1))
             
-            if len(tokens) > max_seq_len - 2:
+            if len(tokens) > max_seq_len:
                 print("Choose higher max_seq_len")
-                tokens = tokens[:max_seq_len-2]
-                slot_labels = slot_labels[:max_seq_len-2]
-
-            tokens = [cls_token] + tokens + [sep_token]
-            slot_labels = [pad_token_id] + slot_labels + [pad_token_id]
-            self.token_type_ids = [0] * len(tokens)
+                tokens = tokens[:max_seq_len]
+                slot_labels = slot_labels[:max_seq_len]
 
             input_ids = tokenizer.convert_tokens_to_ids(tokens)
-            self.attention_mask = [1] * len(input_ids)
+            attention_mask = [1] * len(input_ids)
 
             padding_length = max_seq_len - len(input_ids)
-            input_ids = input_ids + ([pad_token_id] * padding_length)            
+            input_ids = input_ids + ([pad_token_id] * padding_length)
+            if (len(slot_labels) + padding_length != max_seq_len):
+                print("Smth wrong")
             slot_labels = slot_labels + ([pad_token_id] * padding_length)
-            if len(self.attention_mask) < max_seq_len:
-                self.attention_mask = self.attention_mask + ([0] * padding_length)
-            if len(self.token_type_ids) < max_seq_len:
-                self.token_type_ids = self.token_type_ids + ([0] * padding_length)
+            if len(attention_mask) < max_seq_len:
+                attention_mask = attention_mask + ([0] * padding_length)
+            
 
             self.input_ids.append(input_ids)
             self.slot_labels.append(slot_labels)
+            self.attention_mask.append(attention_mask)
+            
+        assert len(self.input_ids[-1]) == max_seq_len
+        assert len(self.slot_labels[-1]) == max_seq_len
+        assert len(self.attention_mask[-1]) == max_seq_len
+        assert len(self.input_ids) == len(self.slot_labels) == len(self.attention_mask)
+        
+        print("Loaded dataset")
 
-            if len(slot_labels) != max_seq_len:
-                print("Error in slot labels")
 
     def __len__(self):
         return len(self.data)
@@ -67,8 +73,7 @@ class Slots(data.Dataset):
     def __getitem__(self, idx):
         return {'input_ids': torch.tensor(self.input_ids[idx]),
                 'slot_labels': torch.tensor(self.slot_labels[idx]),
-                'attention_mask': torch.tensor(self.attention_mask),
-                'token_type_ids': torch.tensor(self.token_type_ids)}
+                'attention_mask': torch.tensor(self.attention_mask)}
 
 def get_data(path):
     sentences = []
@@ -82,7 +87,7 @@ def get_data(path):
             slots = []
             for slot in _slots:
                 tmp = slot.rsplit('=', 1)
-                slots.append((tmp[0], tmp[1] if tmp[1] == 'O' else 'T'))
+                slots.append(tmp[1] if tmp[1] == 'O' else 'T')
             all_slots.append(slots)
             sentences.append(sentence)
 
