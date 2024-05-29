@@ -10,8 +10,22 @@ import argparse
 import numpy as np
 from model import LM_LSTM
 
-def get_model():
-    pass
+def get_model(task, vocab_len, pad_index):
+    from model import LM_LSTM
+    if task == '11':
+        return LM_LSTM(emb_size=250, hidden_size=300, output_size=vocab_len, pad_index=pad_index, out_dropout=0, emb_dropout=0, n_layers=1, weight_tying=False, variational_dropout=False)
+    elif task == '12':
+        return LM_LSTM(emb_size=250, hidden_size=300, output_size=vocab_len, pad_index=pad_index, out_dropout=.2, emb_dropout=.65, n_layers=1, weight_tying=False, variational_dropout=False)
+    elif task == '13':
+        return LM_LSTM(emb_size=250, hidden_size=300, output_size=vocab_len, pad_index=pad_index, out_dropout=.2, emb_dropout=.65, n_layers=1, weight_tying=False, variational_dropout=False)
+    elif task == '21':
+        return LM_LSTM(emb_size=300, hidden_size=300, output_size=vocab_len, pad_index=pad_index, out_dropout=.2, emb_dropout=.65, n_layers=1, weight_tying=True, variational_dropout=True)
+    elif task == '22':
+        return LM_LSTM(emb_size=800, hidden_size=800, output_size=vocab_len, pad_index=pad_index, out_dropout=.3, emb_dropout=.65, n_layers=1, weight_tying=True, variational_dropout=True)
+    elif task == '23':
+        return LM_LSTM(emb_size=800, hidden_size=800, output_size=vocab_len, pad_index=pad_index, out_dropout=.2, emb_dropout=.6, n_layers=1, weight_tying=True, variational_dropout=True)
+    else:
+        raise ValueError("Model not found")
 
 def get_data(batch_train=20, batch_dev=512, batch_test=512):
     train_raw = read_file("dataset/PennTreeBank/ptb.train.txt")
@@ -49,8 +63,10 @@ def main(device='cuda:0', task='11', model=None):
         'weight_tying': True,
         'variational_dropout': True
     }
-
-    model = LM_LSTM(**model_params).to(device)
+    if model is None or model == '':
+        model = get_model(task, len(lang.word2id), lang.word2id["<pad>"]).to(device)
+    else:
+        model = torch.load(model).to(device)
     init_weights(model)
 
     criterion_train = nn.CrossEntropyLoss(ignore_index=lang.word2id["<pad>"])
@@ -60,11 +76,45 @@ def main(device='cuda:0', task='11', model=None):
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True, threshold=1, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
     clip = 5
 
+    scheduler = None
+    if task == '11':
+        clip = 5
+        lr = 3
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+    elif task == '12':
+        clip = 5
+        lr = 1
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+    elif task == '13':
+        clip = 5
+        lr = 0.001
+        optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    elif task == '21':
+        clip = 5
+        lr = .001
+        optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    elif task == '22':
+        clip = 5
+        lr = .003
+        optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+        # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.8)
+    elif task == '23':
+        clip = 5
+        lr = 10
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.75)
+        # optimizer = torch.optimx.AdamW(model.parameters(), lr=lr2)
+        k = 0
+        t = 0
+        T = 0
+        L = 5 # number of iterations in epoch
+        monotone = 5
+        logs = []
+    else:
+        raise ValueError("Task not found")
+
     n_epochs = 100
     patience = 5
-    k = 0
-    t = 0
-    monotone = 5
     logs = []
     best_model = None
     losses_train = []

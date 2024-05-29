@@ -43,13 +43,13 @@ def main(task, device='cuda:0', model=None):
     test_dataset = PennTreeBank(test_raw, lang)
 
     # Dataloaders:
-    train_loader = DataLoader(train_dataset, batch_size=20, collate_fn=partial(collate_fn, pad_token=lang.word2id["<pad>"]),  shuffle=True)
+    train_loader = DataLoader(train_dataset, batch_size=40, collate_fn=partial(collate_fn, pad_token=lang.word2id["<pad>"]),  shuffle=True)
     dev_loader = DataLoader(dev_dataset, batch_size=512, collate_fn=partial(collate_fn, pad_token=lang.word2id["<pad>"]))
     test_loader = DataLoader(test_dataset, batch_size=512, collate_fn=partial(collate_fn, pad_token=lang.word2id["<pad>"]))
 
     # Set task specific parameters
-    n_epochs = 100
-    patience = 7
+    n_epochs = 60
+    patience = 5
 
     if model is None or model == '':
         model = get_model(task, len(lang.word2id), lang.word2id["<pad>"]).to(device)
@@ -59,7 +59,7 @@ def main(task, device='cuda:0', model=None):
     scheduler = None
     if task == '11':
         clip = 5
-        lr = 1
+        lr = 3
         optimizer = torch.optim.SGD(model.parameters(), lr=lr)
     elif task == '12':
         clip = 5

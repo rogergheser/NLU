@@ -9,11 +9,11 @@ class SlotBert(BertPreTrainedModel):
         self.slot_classifier = nn.Linear(config.hidden_size, num_labels)
         self.dropout = nn.Dropout(dropout)
         self.init_weights()
-    def forward(self, input_ids, attention_mask, token_type_ids):
-        outputs = self.bert(input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
+    def forward(self, input_ids, attention_mask):
+        outputs = self.bert(input_ids, attention_mask=attention_mask)
         sequence_output = outputs[0]
         sequence_output = self.dropout(sequence_output)
-        slot_logits = self.slot_classifier(sequence_output)
+        slot_logits = self.slot_classifier(sequence_output).permute(0, 2, 1)
         return slot_logits
     def init_weights(self):
         self.slot_classifier.weight.data.normal_(mean=0.0, std=0.02)
