@@ -215,11 +215,15 @@ if __name__ == '__main__':
     lrs = [1e-5, 2e-5, 3e-5, 4e-5]
     total_devs = []
     total_trains = []
+    torch.save(model.state_dict(), 'tmp/initial_state.pth')
     with open('results.txt', 'w') as f:
         f.write("Results\n")
         for lr in lrs:
             optimizer = optim.AdamW(model.parameters(), lr=lr)
+            model.load_state_dict(torch.load('tmp/initial_state.pth'))
+            print(f"Training with LR: {lr}")
             results_test, intent_test, losses_train, losses_dev = main(train_loader, dev_loader, test_loader, lang, model, optimizer, scheduler, criterion_slots, criterion_intents, clip, device)
+            
             f.write(f"LR: {lr}\n")
             f.write(f"Slots: {results_test['total']['f']}\n")
             f.write(f"Intent: {intent_test['accuracy']}\n")

@@ -86,6 +86,7 @@ class Lang():
 
 def get_index(dir):
     files = os.listdir(dir)
+    return len(files)
     if len(files) == 0:
         return 0
     indexes = []

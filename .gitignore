@@ -3,3 +3,5 @@ venv/
 **/bin/**
 **/dataset/**
 **/__pycache__/
+nl-venv/
+*.pt
