@@ -3,6 +3,7 @@ import torch
 import os
 import torch.optim as optim
 import numpy as np
+import pickle
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from sklearn.metrics import classification_report
@@ -10,7 +11,7 @@ from tqdm import tqdm
 from utils import get_index
 from conll import evaluate
 from model import JointBert
-from transformers import BertConfig, BertTokenizer
+from transformers import BertConfig, BertTokenizer, get_linear_schedule_with_warmup
 from functions import IntentsAndSlots, collate_fn
 from utils import Lang, load_data, save_model, get_splits, plot_model
 
@@ -211,7 +212,8 @@ if __name__ == '__main__':
     criterion_slots = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
     criterion_intents = nn.CrossEntropyLoss() # Because we do not have the pad token
 
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=2, verbose=True)
+    # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=2, verbose=True)
+    scheduler = None
     lrs = [1e-5, 2e-5, 3e-5, 4e-5]
     total_devs = []
     total_trains = []
@@ -236,12 +238,14 @@ if __name__ == '__main__':
     fig = plt.figure(figsize=(10,5))
     for id_lr, (lr, train, dev) in enumerate(zip(lrs, total_trains, total_devs)):
         plt.plot(train, label=f"Train - {lr}")
-        plt.plot(dev, label=f"Dev - {lr}")
+        plt.plot(dev, label=f"Dev - {lr}", linestyle='--')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.title('Losses')
     plt.legend()
     idx = get_index('plots/comparisons')
     plt.savefig(f'plots/comparisons/plot_{idx}.png')
+    with open(f"plots/pickle/comparison_{idx}.pkl", "wb") as f:
+        pickle.dump((lrs, total_trains, total_devs), f)
 
     print("Done")
