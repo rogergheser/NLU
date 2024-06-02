@@ -1,0 +1,23 @@
+Results
+Scheduler: <torch.optim.lr_scheduler.ReduceLROnPlateau object at 0x7f9580293550>
+LR: 1e-05
+Slots: 0.9332549250220523
+Intent: 0.9859437751004017
+
+Scheduler: <torch.optim.lr_scheduler.ReduceLROnPlateau object at 0x7f9580293550>
+LR: 2e-05
+Slots: 0.9499116087212728
+Intent: 0.9879518072289156
+
+Scheduler: <torch.optim.lr_scheduler.ReduceLROnPlateau object at 0x7f9580293550>
+LR: 3e-05
+Slots: 0.9415221863062003
+Intent: 0.9779116465863453
+
+Scheduler: <torch.optim.lr_scheduler.ReduceLROnPlateau object at 0x7f9580293550>
+LR: 4e-05
+Slots: 0.9594356261022928
+Intent: 0.9859437751004017
+
+## bin from 2--5
+

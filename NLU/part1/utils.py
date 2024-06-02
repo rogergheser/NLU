@@ -94,21 +94,23 @@ def get_index(dir):
     return max(indexes)+1
 
 def save_model(model, optimizer, path):
-    torch.save({
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict()
-    }, path)
+    with open(path, 'wb') as f:
+        torch.save({
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict()
+        }, f)
 
 
-def plot_model(losses_train, losses_dev, sampled_epochs, dir='plots/'):
+def plot_model(losses_train, losses_dev, dir='plots/'):
+    plt.figure()
     plt.plot(losses_train, label='train')
-    plt.plot(sampled_epochs, losses_dev, label='dev')
+    plt.plot(losses_dev, label='dev')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
-    plt.legend()
-    
+    plt.legend()    
 
     if not os.path.exists(dir):
         os.makedirs(dir)
     idx = get_index(dir)
     plt.savefig(dir + f'loss{idx}.png')
+    plt.close()

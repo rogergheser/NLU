@@ -76,7 +76,6 @@ def main(device='cuda:0', task='11', model=None):
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True, threshold=1, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
     clip = 5
 
-    scheduler = None
     if task == '11':
         clip = 5
         lr = 3
@@ -113,7 +112,7 @@ def main(device='cuda:0', task='11', model=None):
     else:
         raise ValueError("Task not found")
 
-    n_epochs = 100
+    n_epochs = 60
     patience = 5
     logs = []
     best_model = None

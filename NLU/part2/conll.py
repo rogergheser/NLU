@@ -97,7 +97,6 @@ def conlleval(data, otag='O'):
             seg['cor'] += 1
             cls[prev_ref]['cor'] += 1
 
-    print(".")
     return summarize(seg, cls)
 
 

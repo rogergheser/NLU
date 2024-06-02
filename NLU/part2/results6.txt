@@ -1,0 +1,24 @@
+Results
+Scheduler: <torch.optim.lr_scheduler.LambdaLR object at 0x7f999f04d580>
+LR: 1e-05
+Slots: 0.9344262295081968
+Intent: 0.9819277108433735
+
+Scheduler: <torch.optim.lr_scheduler.LambdaLR object at 0x7f999f04d580>
+LR: 2e-05
+Slots: 0.9490333919156415
+Intent: 0.9879518072289156
+
+Scheduler: <torch.optim.lr_scheduler.LambdaLR object at 0x7f999f04d580>
+LR: 3e-05
+Slots: 0.9486953972442099
+Intent: 0.9899598393574297
+
+Scheduler: <torch.optim.lr_scheduler.LambdaLR object at 0x7f999f04d580>
+LR: 4e-05
+Slots: 0.9504253446758582
+Intent: 0.9879518072289156
+
+### This was with warmup
+### bin from 6--9
+

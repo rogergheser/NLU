@@ -119,11 +119,6 @@ def eval_loop(data, criterion_slots, criterion_intents, model, lang):
     return results, report_intent, loss_array
 
 def main(train_loader, dev_loader, _, lang, model, optimizer, scheduler, criterion_slots, criterion_intents, clip=1, device='mps'):
-    print("Eval before Training")
-    results_test, intent_test, loss_array = eval_loop(dev_loader, criterion_slots, criterion_intents, model, lang)
-    print('Slot F1: ', results_test['total']['f'])
-    print('Intent Accuracy:', intent_test['accuracy'])
-    
     top_f1 = 0
     try:
         n_epochs = 20
@@ -161,6 +156,7 @@ def main(train_loader, dev_loader, _, lang, model, optimizer, scheduler, criteri
         print("Eval after Training")
         results_test, intent_test, loss_array = eval_loop(dev_loader, criterion_slots, criterion_intents, model, lang)
 
+    results_test, intent_test, loss_array = eval_loop(dev_loader, criterion_slots, criterion_intents, model, lang)
     plot_model(losses_train, losses_dev, sampled_epochs, dir='plots/')
     idx = get_index('bin/')
     save_model(model, optimizer, f'bin/model{idx}.pth')
@@ -212,20 +208,21 @@ if __name__ == '__main__':
     criterion_slots = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
     criterion_intents = nn.CrossEntropyLoss() # Because we do not have the pad token
 
-    # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=2, verbose=True)
     scheduler = None
+    # scheduler = None
     lrs = [1e-5, 2e-5, 3e-5, 4e-5]
     total_devs = []
     total_trains = []
     torch.save(model.state_dict(), 'tmp/initial_state.pth')
-    with open('results.txt', 'w') as f:
+    idx = get_index('plots/comparisons')
+    with open(f'results{idx}.txt', 'w') as f:
         f.write("Results\n")
         for lr in lrs:
             optimizer = optim.AdamW(model.parameters(), lr=lr)
             model.load_state_dict(torch.load('tmp/initial_state.pth'))
             print(f"Training with LR: {lr}")
             results_test, intent_test, losses_train, losses_dev = main(train_loader, dev_loader, test_loader, lang, model, optimizer, scheduler, criterion_slots, criterion_intents, clip, device)
-            
+            f.write(f"Scheduler: {scheduler}\n")
             f.write(f"LR: {lr}\n")
             f.write(f"Slots: {results_test['total']['f']}\n")
             f.write(f"Intent: {intent_test['accuracy']}\n")
