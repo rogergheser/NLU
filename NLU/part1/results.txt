@@ -1,6 +1,0 @@
-LR 0.0001
-Hidden Size 300
-Embedding Size 300
-Optimizer Adam
-Slot F1 0.941 +- 0.003
-Intent Acc 0.945 +- 0.003

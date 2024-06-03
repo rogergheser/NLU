@@ -73,7 +73,7 @@ def main(train_loader, dev_loader, test_loader, optimizer, scheduler, model, cri
     loop = tqdm(range(1, epochs+1), desc="Epoch: ")
     metrics.append((precision, recall, f1_score))
     try:
-        for epoch in loop:
+        for _ in loop:
             _train_loss = train_loop(train_loader, model, optimizer, criterion_slots, clip, device)
             train_losses.append(_train_loss)
 

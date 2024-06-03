@@ -1,8 +1,0 @@
-{
-    "emb_size" : 250,
-    "hid_size" : 300,
-    "out_dropout" : 0,
-    "emb_dropout" : 0,
-    "lr" : 1,
-    "optimizer" : "SGD"
-}
